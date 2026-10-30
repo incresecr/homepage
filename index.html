@@ -391,6 +391,7 @@ footer .lg{width:70px;height:70px;background-color:var(--paper);border-radius:50
 <label><span data-en="Email" data-es="Correo">Email</span><input autocomplete="email" id="e" type="email"/></label>
 <label><span data-en="Message" data-es="Mensaje">Message</span><textarea id="m" rows="3"></textarea></label>
 <button class="btn" data-en="Send message" data-es="Enviar mensaje" id="send">Send message</button>
+<small aria-live="polite" id="fstat" role="status" style="display:block;margin-top:14px;color:var(--muted);font-size:.92rem"></small>
 </div></div></section>
 </main>
 <footer><div class="wrap"><div aria-label="INCRESE" class="lg" role="img"></div><span data-en="© 2026 INCRESE · Ministry. All rights reserved." data-es="© 2026 INCRESE · Ministerio. Todos los derechos reservados.">© 2026 INCRESE · Ministry. All rights reserved.</span></div></footer>
@@ -398,7 +399,15 @@ footer .lg{width:70px;height:70px;background-color:var(--paper);border-radius:50
 function $(i){return document.getElementById(i)}
 var lang="en",amt=25;
 document.addEventListener("securitypolicyviolation",function(e){if(/frame|child/.test(e.violatedDirective)){var f=$("yt");f.hidden=true;f.removeAttribute("src");var v=$("vnote");v.textContent=(lang=="en"?"Playback is blocked here. Tap to watch on YouTube.":"Este espacio no permite reproducir aquí. Toca para verlo en YouTube.");v.dataset.blocked="1";v.style.display="block"}});
-$("send").onclick=function(){var s=encodeURIComponent(lang=="en"?"Message from the INCRESE website":"Mensaje desde el sitio de INCRESE"),b=encodeURIComponent($("n").value+" ("+$("e").value+")\n\n"+$("m").value);location.href="mailto:paola@increse.net?subject="+s+"&body="+b};
+$("send").onclick=function(){var btn=$("send"),st=$("fstat"),es=lang!="en",n=$("n").value.trim(),e=$("e").value.trim(),m=$("m").value.trim();
+function say(t,ok){st.textContent=t;st.style.color=ok?"var(--leaf)":"#a33"}
+if(!n||!e||!m){say(es?"Por favor completa nombre, correo y mensaje.":"Please fill in your name, email and message.");return}
+if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)){say(es?"Revisa que tu correo sea válido.":"Please check that your email is valid.");return}
+btn.disabled=true;btn.style.opacity=".6";say(es?"Enviando…":"Sending…",true);
+fetch("https://formspree.io/f/mzeeakjd",{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify({name:n,email:e,message:m,_subject:es?"Mensaje desde el sitio de INCRESE":"Message from the INCRESE website"})})
+.then(function(r){if(!r.ok)throw 0;$("n").value="";$("e").value="";$("m").value="";say(es?"¡Gracias! Tu mensaje fue enviado. Te responderemos pronto.":"Thank you! Your message was sent. We will reply soon.",true)})
+.catch(function(){say(es?"No pudimos enviar tu mensaje. Escríbenos a paola@increse.net.":"We could not send your message. Please email paola@increse.net.")})
+.then(function(){btn.disabled=false;btn.style.opacity=""})};
 /* anillo de valores — INCRESE farm system */
 (function(){
 var V=[
